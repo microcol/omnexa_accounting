@@ -1,18 +1,23 @@
 {
  "actions": [],
+ "allow_rename": 1,
  "autoname": "hash",
- "creation": "2026-04-12 23:00:00",
+ "creation": "2026-04-14 14:00:00",
  "doctype": "DocType",
  "engine": "InnoDB",
  "field_order": [
+  "mode_name",
   "company",
-  "posting_date",
-  "is_opening",
-  "reference",
-  "remarks",
-  "accounts"
+  "type"
  ],
  "fields": [
+  {
+   "fieldname": "mode_name",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Mode Name",
+   "reqd": 1
+  },
   {
    "fieldname": "company",
    "fieldtype": "Link",
@@ -22,52 +27,25 @@
    "reqd": 1
   },
   {
-   "default": "Today",
-   "fieldname": "posting_date",
-   "fieldtype": "Date",
-   "in_list_view": 1,
-   "label": "Posting Date",
-   "reqd": 1
-  },
-  {
-   "default": "0",
-   "description": "Cutover / opening balance entry; allowed to post when fiscal period is frozen (controlled)",
-   "fieldname": "is_opening",
-   "fieldtype": "Check",
-   "label": "Is Opening Entry"
-  },
-  {
-   "fieldname": "reference",
-   "fieldtype": "Data",
-   "label": "Reference"
-  },
-  {
-   "fieldname": "remarks",
-   "fieldtype": "Small Text",
-   "label": "Remarks"
-  },
-  {
-   "fieldname": "accounts",
-   "fieldtype": "Table",
-   "label": "Accounts",
-   "options": "Journal Entry Account",
+   "default": "Bank",
+   "fieldname": "type",
+   "fieldtype": "Select",
+   "label": "Type",
+   "options": "Cash\nBank\nCard\nWire\nCheque\nOther",
    "reqd": 1
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
- "is_submittable": 1,
  "links": [],
  "modified": "2026-04-14 14:00:00",
  "modified_by": "Administrator",
  "module": "Omnexa Accounting",
- "name": "Journal Entry",
+ "name": "Mode of Payment",
  "naming_rule": "Random",
  "owner": "Administrator",
  "permissions": [
   {
-   "amend": 1,
-   "cancel": 1,
    "create": 1,
    "delete": 1,
    "email": 1,
@@ -77,12 +55,9 @@
    "report": 1,
    "role": "System Manager",
    "share": 1,
-   "submit": 1,
    "write": 1
   },
   {
-   "amend": 1,
-   "cancel": 1,
    "create": 1,
    "delete": 0,
    "email": 1,
@@ -92,12 +67,9 @@
    "report": 1,
    "role": "Accounts Manager",
    "share": 0,
-   "submit": 1,
    "write": 1
   },
   {
-   "amend": 0,
-   "cancel": 0,
    "create": 1,
    "delete": 0,
    "email": 0,
@@ -107,12 +79,9 @@
    "report": 1,
    "role": "Accounts User",
    "share": 0,
-   "submit": 1,
    "write": 1
   },
   {
-   "amend": 0,
-   "cancel": 0,
    "create": 0,
    "delete": 0,
    "email": 0,
@@ -122,7 +91,6 @@
    "report": 1,
    "role": "Desk User",
    "share": 0,
-   "submit": 0,
    "write": 0
   }
  ],

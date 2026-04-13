@@ -17,7 +17,7 @@ class JournalEntry(Document):
 	def on_submit(self):
 		self._validate_balanced()
 		self._validate_accounts()
-		assert_posting_date_open(self.company, self.posting_date)
+		assert_posting_date_open(self.company, self.posting_date, is_opening=bool(self.is_opening))
 
 	def _validate_balanced(self):
 		total_debit = sum(flt(r.debit) for r in self.accounts or [])

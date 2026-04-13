@@ -6,8 +6,13 @@ from frappe import _
 from frappe.utils import getdate
 
 
-def assert_posting_date_open(company: str, posting_date):
-	"""Block GL posting when a matching fiscal period is frozen (see Fiscal Year spec)."""
+def assert_posting_date_open(company: str, posting_date, *, is_opening: bool = False):
+	"""Block GL posting when a matching fiscal period is frozen (see Fiscal Year spec).
+
+	Opening entries (cutover) may post in a frozen period when ``is_opening`` is True.
+	"""
+	if is_opening:
+		return
 	if not company or not posting_date:
 		return
 	pd = getdate(posting_date)

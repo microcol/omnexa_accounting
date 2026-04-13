@@ -1,18 +1,30 @@
 {
  "actions": [],
+ "allow_rename": 1,
  "autoname": "hash",
- "creation": "2026-04-12 23:00:00",
+ "creation": "2026-04-13 10:00:00",
  "doctype": "DocType",
  "engine": "InnoDB",
  "field_order": [
+  "customer_name",
   "company",
-  "posting_date",
-  "is_opening",
-  "reference",
-  "remarks",
-  "accounts"
+  "status",
+  "credit_limit",
+  "payment_terms",
+  "tax_id",
+  "email",
+  "phone",
+  "country",
+  "address_line"
  ],
  "fields": [
+  {
+   "fieldname": "customer_name",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Customer Name",
+   "reqd": 1
+  },
   {
    "fieldname": "company",
    "fieldtype": "Link",
@@ -22,52 +34,65 @@
    "reqd": 1
   },
   {
-   "default": "Today",
-   "fieldname": "posting_date",
-   "fieldtype": "Date",
+   "default": "Active",
+   "fieldname": "status",
+   "fieldtype": "Select",
    "in_list_view": 1,
-   "label": "Posting Date",
-   "reqd": 1
+   "label": "Status",
+   "options": "Active\nInactive"
   },
   {
    "default": "0",
-   "description": "Cutover / opening balance entry; allowed to post when fiscal period is frozen (controlled)",
-   "fieldname": "is_opening",
-   "fieldtype": "Check",
-   "label": "Is Opening Entry"
+   "fieldname": "credit_limit",
+   "fieldtype": "Currency",
+   "label": "Credit Limit",
+   "description": "If set (>0), a single submitted invoice cannot exceed this amount (MVP check)"
   },
   {
-   "fieldname": "reference",
+   "fieldname": "payment_terms",
    "fieldtype": "Data",
-   "label": "Reference"
+   "label": "Payment Terms",
+   "description": "e.g. Net 30 — informational; invoice due dates are set per document"
   },
   {
-   "fieldname": "remarks",
+   "fieldname": "tax_id",
+   "fieldtype": "Data",
+   "label": "Tax ID"
+  },
+  {
+   "fieldname": "email",
+   "fieldtype": "Data",
+   "label": "Email",
+   "options": "Email"
+  },
+  {
+   "fieldname": "phone",
+   "fieldtype": "Data",
+   "label": "Phone"
+  },
+  {
+   "fieldname": "country",
+   "fieldtype": "Link",
+   "label": "Country",
+   "options": "Country"
+  },
+  {
+   "fieldname": "address_line",
    "fieldtype": "Small Text",
-   "label": "Remarks"
-  },
-  {
-   "fieldname": "accounts",
-   "fieldtype": "Table",
-   "label": "Accounts",
-   "options": "Journal Entry Account",
-   "reqd": 1
+   "label": "Address"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
- "is_submittable": 1,
  "links": [],
  "modified": "2026-04-14 14:00:00",
  "modified_by": "Administrator",
  "module": "Omnexa Accounting",
- "name": "Journal Entry",
+ "name": "Customer",
  "naming_rule": "Random",
  "owner": "Administrator",
  "permissions": [
   {
-   "amend": 1,
-   "cancel": 1,
    "create": 1,
    "delete": 1,
    "email": 1,
@@ -77,12 +102,9 @@
    "report": 1,
    "role": "System Manager",
    "share": 1,
-   "submit": 1,
    "write": 1
   },
   {
-   "amend": 1,
-   "cancel": 1,
    "create": 1,
    "delete": 0,
    "email": 1,
@@ -92,12 +114,9 @@
    "report": 1,
    "role": "Accounts Manager",
    "share": 0,
-   "submit": 1,
    "write": 1
   },
   {
-   "amend": 0,
-   "cancel": 0,
    "create": 1,
    "delete": 0,
    "email": 0,
@@ -107,12 +126,9 @@
    "report": 1,
    "role": "Accounts User",
    "share": 0,
-   "submit": 1,
    "write": 1
   },
   {
-   "amend": 0,
-   "cancel": 0,
    "create": 0,
    "delete": 0,
    "email": 0,
@@ -122,7 +138,6 @@
    "report": 1,
    "role": "Desk User",
    "share": 0,
-   "submit": 0,
    "write": 0
   }
  ],

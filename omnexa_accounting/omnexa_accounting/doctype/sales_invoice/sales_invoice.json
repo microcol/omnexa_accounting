@@ -6,13 +6,24 @@
  "engine": "InnoDB",
  "field_order": [
   "company",
-  "customer_name",
+  "customer",
   "posting_date",
+  "due_date",
+  "return_section",
+  "is_return",
+  "return_against",
+  "currency_section",
+  "currency",
+  "conversion_rate",
   "default_tax_rule",
   "items",
   "net_total",
   "tax_total",
-  "grand_total"
+  "grand_total",
+  "base_section",
+  "base_net_total",
+  "base_tax_total",
+  "base_grand_total"
  ],
  "fields": [
   {
@@ -24,10 +35,11 @@
    "reqd": 1
   },
   {
-   "fieldname": "customer_name",
-   "fieldtype": "Data",
+   "fieldname": "customer",
+   "fieldtype": "Link",
    "in_list_view": 1,
    "label": "Customer",
+   "options": "Customer",
    "reqd": 1
   },
   {
@@ -37,6 +49,48 @@
    "in_list_view": 1,
    "label": "Posting Date",
    "reqd": 1
+  },
+  {
+   "fieldname": "due_date",
+   "fieldtype": "Date",
+   "label": "Due Date"
+  },
+  {
+   "fieldname": "return_section",
+   "fieldtype": "Section Break",
+   "label": "Return / Credit Note"
+  },
+  {
+   "default": "0",
+   "fieldname": "is_return",
+   "fieldtype": "Check",
+   "label": "Is Return (Credit Note)"
+  },
+  {
+   "depends_on": "eval:doc.is_return",
+   "fieldname": "return_against",
+   "fieldtype": "Link",
+   "label": "Return Against",
+   "options": "Sales Invoice"
+  },
+  {
+   "fieldname": "currency_section",
+   "fieldtype": "Section Break",
+   "label": "Currency"
+  },
+  {
+   "fieldname": "currency",
+   "fieldtype": "Link",
+   "label": "Currency",
+   "options": "Currency",
+   "reqd": 1
+  },
+  {
+   "default": "1",
+   "fieldname": "conversion_rate",
+   "fieldtype": "Float",
+   "label": "Conversion Rate",
+   "precision": "9"
   },
   {
    "fieldname": "default_tax_rule",
@@ -69,13 +123,37 @@
    "in_list_view": 1,
    "label": "Grand Total",
    "read_only": 1
+  },
+  {
+   "fieldname": "base_section",
+   "fieldtype": "Section Break",
+   "label": "In company currency"
+  },
+  {
+   "fieldname": "base_net_total",
+   "fieldtype": "Currency",
+   "label": "Base Net Total",
+   "read_only": 1
+  },
+  {
+   "fieldname": "base_tax_total",
+   "fieldtype": "Currency",
+   "label": "Base Tax Total",
+   "read_only": 1
+  },
+  {
+   "fieldname": "base_grand_total",
+   "fieldtype": "Currency",
+   "in_list_view": 1,
+   "label": "Base Grand Total",
+   "read_only": 1
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2026-04-12 23:00:00",
+ "modified": "2026-04-14 14:00:00",
  "modified_by": "Administrator",
  "module": "Omnexa Accounting",
  "name": "Sales Invoice",

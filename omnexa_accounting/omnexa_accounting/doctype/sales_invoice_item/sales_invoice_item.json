@@ -5,20 +5,29 @@
  "editable_grid": 1,
  "engine": "InnoDB",
  "field_order": [
+  "item",
   "item_code",
   "qty",
   "rate",
   "amount",
   "tax_rule",
-  "income_account"
+  "income_account",
+  "cost_center"
  ],
  "fields": [
+  {
+   "fieldname": "item",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Item",
+   "options": "Item"
+  },
   {
    "fieldname": "item_code",
    "fieldtype": "Data",
    "in_list_view": 1,
    "label": "Item Code",
-   "reqd": 1
+   "description": "Required if Item is not set"
   },
   {
    "default": "1",
@@ -53,11 +62,17 @@
    "fieldtype": "Link",
    "label": "Income Account",
    "options": "GL Account"
+  },
+  {
+   "fieldname": "cost_center",
+   "fieldtype": "Link",
+   "label": "Cost Center",
+   "options": "Cost Center"
   }
  ],
  "istable": 1,
  "links": [],
- "modified": "2026-04-12 23:00:00",
+ "modified": "2026-04-14 10:00:00",
  "modified_by": "Administrator",
  "module": "Omnexa Accounting",
  "name": "Sales Invoice Item",

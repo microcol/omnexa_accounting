@@ -1,6 +1,6 @@
 {
  "charts": [],
- "content": "[{\"id\":\"omx-acc-h1\",\"type\":\"header\",\"data\":{\"text\":\"<span class=\\\"h4\\\"><b>Omnexa Accounting</b></span>\",\"col\":12}},{\"id\":\"omx-acc-c1\",\"type\":\"card\",\"data\":{\"card_name\":\"Setup\",\"col\":4}},{\"id\":\"omx-acc-c2\",\"type\":\"card\",\"data\":{\"card_name\":\"Operations\",\"col\":4}}]",
+ "content": "[{\"id\":\"omx-acc-h1\",\"type\":\"header\",\"data\":{\"text\":\"<span class=\\\"h4\\\"><b>Omnexa Accounting</b></span>\",\"col\":12}},{\"id\":\"omx-acc-c1\",\"type\":\"card\",\"data\":{\"card_name\":\"Setup\",\"col\":4}},{\"id\":\"omx-acc-c3\",\"type\":\"card\",\"data\":{\"card_name\":\"Parties\",\"col\":4}},{\"id\":\"omx-acc-c4\",\"type\":\"card\",\"data\":{\"card_name\":\"Items\",\"col\":4}},{\"id\":\"omx-acc-c2\",\"type\":\"card\",\"data\":{\"card_name\":\"Operations\",\"col\":4}}]",
  "custom_blocks": [],
  "docstatus": 0,
  "doctype": "Workspace",
@@ -45,6 +45,102 @@
    "label": "Tax Rule",
    "link_count": 0,
    "link_to": "Tax Rule",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Currency Exchange Rate",
+   "link_count": 0,
+   "link_to": "Currency Exchange Rate",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Cost Center",
+   "link_count": 0,
+   "link_to": "Cost Center",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Bank Account",
+   "link_count": 0,
+   "link_to": "Bank Account",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Mode of Payment",
+   "link_count": 0,
+   "link_to": "Mode of Payment",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Parties",
+   "link_count": 0,
+   "onboard": 0,
+   "type": "Card Break"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Customer",
+   "link_count": 0,
+   "link_to": "Customer",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Supplier",
+   "link_count": 0,
+   "link_to": "Supplier",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Items",
+   "link_count": 0,
+   "onboard": 0,
+   "type": "Card Break"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "UOM",
+   "link_count": 0,
+   "link_to": "UOM",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Item",
+   "link_count": 0,
+   "link_to": "Item",
    "link_type": "DocType",
    "onboard": 0,
    "type": "Link"
@@ -98,7 +194,7 @@
    "type": "Link"
   }
  ],
- "modified": "2026-04-13 15:30:00",
+ "modified": "2026-04-14 14:30:00",
  "modified_by": "Administrator",
  "module": "Omnexa Accounting",
  "name": "Omnexa Accounting",
