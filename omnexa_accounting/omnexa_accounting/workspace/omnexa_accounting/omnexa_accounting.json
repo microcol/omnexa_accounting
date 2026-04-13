@@ -1,6 +1,6 @@
 {
  "charts": [],
- "content": "[{\"id\":\"omx-acc-h1\",\"type\":\"header\",\"data\":{\"text\":\"<span class=\\\"h4\\\"><b>Omnexa Accounting</b></span>\",\"col\":12}},{\"id\":\"omx-acc-c1\",\"type\":\"card\",\"data\":{\"card_name\":\"Setup\",\"col\":4}},{\"id\":\"omx-acc-c3\",\"type\":\"card\",\"data\":{\"card_name\":\"Parties\",\"col\":4}},{\"id\":\"omx-acc-c4\",\"type\":\"card\",\"data\":{\"card_name\":\"Items\",\"col\":4}},{\"id\":\"omx-acc-c2\",\"type\":\"card\",\"data\":{\"card_name\":\"Operations\",\"col\":4}}]",
+ "content": "[{\"id\":\"omx-acc-h1\",\"type\":\"header\",\"data\":{\"text\":\"<span class=\\\"h4\\\"><b>Accounting</b></span>\",\"col\":12}},{\"id\":\"omx-acc-c1\",\"type\":\"card\",\"data\":{\"card_name\":\"Setup\",\"col\":4}},{\"id\":\"omx-acc-c3\",\"type\":\"card\",\"data\":{\"card_name\":\"Parties\",\"col\":4}},{\"id\":\"omx-acc-c4\",\"type\":\"card\",\"data\":{\"card_name\":\"Items\",\"col\":4}},{\"id\":\"omx-acc-c2\",\"type\":\"card\",\"data\":{\"card_name\":\"Operations\",\"col\":4}}]",
  "custom_blocks": [],
  "docstatus": 0,
  "doctype": "Workspace",
@@ -9,7 +9,7 @@
  "icon": "accounting",
  "idx": 0,
  "is_hidden": 0,
- "label": "Omnexa Accounting",
+ "label": "Accounting",
  "links": [
   {
    "hidden": 0,
@@ -120,6 +120,26 @@
   {
    "hidden": 0,
    "is_query_report": 0,
+   "label": "Employee",
+   "link_count": 0,
+   "link_to": "Employee",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Leave Policy",
+   "link_count": 0,
+   "link_to": "Leave Policy",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
    "label": "Items",
    "link_count": 0,
    "onboard": 0,
@@ -192,12 +212,72 @@
    "link_type": "DocType",
    "onboard": 0,
    "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Landed Cost Voucher",
+   "link_count": 0,
+   "link_to": "Landed Cost Voucher",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Stock Reconciliation",
+   "link_count": 0,
+   "link_to": "Stock Reconciliation",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Project Template",
+   "link_count": 0,
+   "link_to": "Project Template",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Timesheet Entry",
+   "link_count": 0,
+   "link_to": "Timesheet Entry",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Pipeline Lead",
+   "link_count": 0,
+   "link_to": "Pipeline Lead",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Pipeline Opportunity",
+   "link_count": 0,
+   "link_to": "Pipeline Opportunity",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
   }
  ],
  "modified": "2026-04-14 14:30:00",
  "modified_by": "Administrator",
  "module": "Omnexa Accounting",
- "name": "Omnexa Accounting",
+ "name": "Accounting",
  "number_cards": [],
  "owner": "Administrator",
  "parent_page": "",
@@ -207,5 +287,5 @@
  "roles": [],
  "sequence_id": 6.0,
  "shortcuts": [],
- "title": "Omnexa Accounting"
+ "title": "Accounting"
 }

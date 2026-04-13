@@ -1,6 +1,6 @@
 ### Omnexa Accounting
 
-Double-entry accounting for OmnexaERP
+Double-entry accounting for **ErpGenEx** (`omnexa_accounting`)
 
 ### Installation
 

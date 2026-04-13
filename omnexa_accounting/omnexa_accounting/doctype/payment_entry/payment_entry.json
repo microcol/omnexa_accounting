@@ -12,6 +12,10 @@
   "party",
   "posting_date",
   "paid_amount",
+  "remittance_section",
+  "remittance_reference",
+  "remittance_date",
+  "remittance_bank_reference",
   "references",
   "amended_from"
  ],
@@ -68,6 +72,26 @@
    "in_list_view": 1,
    "label": "Paid Amount",
    "reqd": 1
+  },
+  {
+   "fieldname": "remittance_section",
+   "fieldtype": "Section Break",
+   "label": "Remittance Metadata"
+  },
+  {
+   "fieldname": "remittance_reference",
+   "fieldtype": "Data",
+   "label": "Remittance Reference"
+  },
+  {
+   "fieldname": "remittance_date",
+   "fieldtype": "Date",
+   "label": "Remittance Date"
+  },
+  {
+   "fieldname": "remittance_bank_reference",
+   "fieldtype": "Data",
+   "label": "Remittance Bank Reference"
   },
   {
    "fieldname": "references",

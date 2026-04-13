@@ -6,8 +6,9 @@ import hashlib
 import frappe
 from frappe import _
 from frappe.model.document import Document
-from frappe.utils import add_days, flt, getdate
+from frappe.utils import add_days, cint, flt, getdate
 
+from omnexa_core.omnexa_core.constants import DOC_STATUS_QUEUED
 from omnexa_accounting.utils.currency import apply_multi_currency_to_invoice
 from omnexa_accounting.utils.party import get_effective_credit_days
 from omnexa_accounting.utils.posting import assert_posting_date_open
@@ -22,8 +23,10 @@ class SalesInvoice(Document):
 		self._sync_and_validate_line_items()
 		self._set_amounts()
 		apply_multi_currency_to_invoice(self)
+		self._validate_payment_schedule()
 		self._validate_tax_rules()
 		self._validate_item_cost_centers()
+		self._set_outstanding_amount()
 
 	def _apply_due_date_from_party(self):
 		if self.due_date or self.is_return or not self.customer:
@@ -122,6 +125,51 @@ class SalesInvoice(Document):
 		self.tax_total = tax
 		self.grand_total = net + tax
 
+	def _set_outstanding_amount(self):
+		if not self.name:
+			self.outstanding_amount = flt(self.grand_total)
+			return
+		allocated = frappe.db.sql(
+			"""
+			SELECT COALESCE(SUM(per.allocated_amount), 0)
+			FROM `tabPayment Entry Reference` per
+			INNER JOIN `tabPayment Entry` pe ON pe.name = per.parent
+			WHERE per.reference_doctype = 'Sales Invoice'
+				AND per.reference_name = %s
+				AND pe.docstatus = 1
+				AND per.parenttype = 'Payment Entry'
+			""",
+			(self.name,),
+		)
+		allocated_amount = flt(allocated[0][0] if allocated else 0)
+		self.outstanding_amount = max(flt(self.grand_total) - allocated_amount, 0)
+
+	def _validate_payment_schedule(self):
+		if not self.payment_schedule:
+			return
+		total_schedule = 0
+		max_due_date = None
+		for row in self.payment_schedule:
+			if getdate(row.due_date) < getdate(self.posting_date):
+				frappe.throw(
+					_("Payment Schedule row {0}: Due Date cannot be before Posting Date.").format(row.idx),
+					title=_("Payment Schedule"),
+				)
+			if flt(row.payment_amount) <= 0:
+				frappe.throw(
+					_("Payment Schedule row {0}: Payment Amount must be greater than zero.").format(row.idx),
+					title=_("Payment Schedule"),
+				)
+			total_schedule += flt(row.payment_amount)
+			if max_due_date is None or getdate(row.due_date) > getdate(max_due_date):
+				max_due_date = row.due_date
+		if abs(flt(total_schedule) - flt(self.grand_total)) > 0.0001:
+			frappe.throw(
+				_("Payment Schedule total must equal Grand Total."),
+				title=_("Payment Schedule"),
+			)
+		self.due_date = max_due_date
+
 	def _validate_tax_rules(self):
 		if self.default_tax_rule:
 			if frappe.db.get_value("Tax Rule", self.default_tax_rule, "company") != self.company:
@@ -146,10 +194,26 @@ class SalesInvoice(Document):
 			return
 		limit = flt(frappe.db.get_value("Customer", self.customer, "credit_limit"))
 		if limit > 0 and flt(self.grand_total) > limit:
+			if cint(getattr(self, "credit_limit_override_approved", 0)):
+				if not (getattr(self, "credit_limit_override_reason", "") or "").strip():
+					frappe.throw(
+						_("Credit limit override reason is required."),
+						title=_("Credit"),
+					)
+				if not self._can_approve_credit_limit_override():
+					frappe.throw(
+						_("Credit limit override can only be approved by Accounts Manager or System Manager."),
+						title=_("Credit"),
+					)
+				return
 			frappe.throw(
 				_("Invoice grand total exceeds the customer's credit limit."),
 				title=_("Credit"),
 			)
+
+	def _can_approve_credit_limit_override(self):
+		roles = set(frappe.get_roles(frappe.session.user))
+		return bool({"Accounts Manager", "System Manager"} & roles)
 
 	def _enqueue_eta_submission(self):
 		if self.is_return:
@@ -164,6 +228,7 @@ class SalesInvoice(Document):
 		doc.reference_doctype = self.doctype
 		doc.reference_name = self.name
 		doc.payload_hash = h
-		doc.authority_status = "Queued"
+		doc.authority_operation = "submit"
+		doc.authority_status = DOC_STATUS_QUEUED
 		doc.insert(ignore_permissions=True)
 		doc.submit()

@@ -3,7 +3,7 @@ name = "omnexa_accounting"
 authors = [
     { name = "Omnexa", email = "dev@omnexa.local"}
 ]
-description = "Double-entry accounting for OmnexaERP"
+description = "Double-entry accounting for ErpGenEx (omnexa_accounting)"
 requires-python = ">=3.10"
 readme = "README.md"
 dynamic = ["version"]

@@ -10,6 +10,8 @@
   "qty",
   "rate",
   "amount",
+  "landed_cost_amount",
+  "landed_rate",
   "tax_rule",
   "expense_account",
   "cost_center"
@@ -49,6 +51,18 @@
    "fieldtype": "Currency",
    "in_list_view": 1,
    "label": "Amount",
+   "read_only": 1
+  },
+  {
+   "fieldname": "landed_cost_amount",
+   "fieldtype": "Currency",
+   "label": "Landed Cost Amount",
+   "read_only": 1
+  },
+  {
+   "fieldname": "landed_rate",
+   "fieldtype": "Currency",
+   "label": "Landed Rate",
    "read_only": 1
   },
   {

@@ -9,6 +9,8 @@
   "supplier",
   "posting_date",
   "due_date",
+  "po_reference",
+  "goods_receipt_reference",
   "return_section",
   "is_return",
   "return_against",
@@ -16,10 +18,12 @@
   "currency",
   "conversion_rate",
   "default_tax_rule",
+  "payment_schedule",
   "items",
   "net_total",
   "tax_total",
   "grand_total",
+  "outstanding_amount",
   "base_section",
   "base_net_total",
   "base_tax_total",
@@ -55,6 +59,18 @@
    "fieldname": "due_date",
    "fieldtype": "Date",
    "label": "Due Date"
+  },
+  {
+   "fieldname": "po_reference",
+   "fieldtype": "Link",
+   "label": "PO Reference"
+   ,"options": "Purchase Order"
+  },
+  {
+   "fieldname": "goods_receipt_reference",
+   "fieldtype": "Link",
+   "label": "Goods Receipt Reference"
+   ,"options": "Purchase Receipt"
   },
   {
    "fieldname": "return_section",
@@ -100,6 +116,12 @@
    "options": "Tax Rule"
   },
   {
+   "fieldname": "payment_schedule",
+   "fieldtype": "Table",
+   "label": "Payment Schedule",
+   "options": "Payment Schedule Line"
+  },
+  {
    "fieldname": "items",
    "fieldtype": "Table",
    "label": "Items",
@@ -123,6 +145,13 @@
    "fieldtype": "Currency",
    "in_list_view": 1,
    "label": "Grand Total",
+   "read_only": 1
+  },
+  {
+   "fieldname": "outstanding_amount",
+   "fieldtype": "Currency",
+   "in_list_view": 1,
+   "label": "Outstanding Amount",
    "read_only": 1
   },
   {

@@ -1,0 +1,44 @@
+{
+ "actions": [],
+ "autoname": "hash",
+ "creation": "2026-04-15 14:45:00",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "company",
+  "lead_name",
+  "contact_email",
+  "source",
+  "stage",
+  "customer",
+  "next_follow_up_date"
+ ],
+ "fields": [
+  {"fieldname":"company","fieldtype":"Link","in_list_view":1,"label":"Company","options":"Company","reqd":1},
+  {"fieldname":"lead_name","fieldtype":"Data","in_list_view":1,"label":"Lead Name","reqd":1},
+  {"fieldname":"contact_email","fieldtype":"Data","in_list_view":1,"label":"Contact Email"},
+  {"fieldname":"source","fieldtype":"Select","label":"Source","options":"Referral\nWebsite\nCampaign\nPartner\nOther"},
+  {"default":"New","fieldname":"stage","fieldtype":"Select","in_list_view":1,"label":"Stage","options":"New\nQualified\nProposal\nWon\nLost","reqd":1},
+  {"fieldname":"customer","fieldtype":"Link","label":"Customer","options":"Customer"},
+  {"fieldname":"next_follow_up_date","fieldtype":"Date","label":"Next Follow Up Date"}
+ ],
+ "grid_page_length": 50,
+ "index_web_pages_for_search": 1,
+ "links": [],
+ "modified": "2026-04-15 14:45:00",
+ "modified_by": "Administrator",
+ "module": "Omnexa Accounting",
+ "name": "Pipeline Lead",
+ "naming_rule": "Random",
+ "owner": "Administrator",
+ "permissions": [
+  {"create":1,"delete":1,"email":1,"export":1,"print":1,"read":1,"report":1,"role":"System Manager","share":1,"write":1},
+  {"create":1,"delete":0,"email":1,"export":1,"print":1,"read":1,"report":1,"role":"Accounts Manager","share":0,"write":1},
+  {"create":1,"delete":0,"email":0,"export":0,"print":1,"read":1,"report":1,"role":"Accounts User","share":0,"write":1}
+ ],
+ "row_format": "Dynamic",
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": [],
+ "track_changes": 1
+}

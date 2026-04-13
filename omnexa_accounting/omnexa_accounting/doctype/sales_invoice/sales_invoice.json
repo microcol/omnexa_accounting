@@ -16,10 +16,14 @@
   "currency",
   "conversion_rate",
   "default_tax_rule",
+  "payment_schedule",
   "items",
   "net_total",
   "tax_total",
   "grand_total",
+  "credit_limit_override_approved",
+  "credit_limit_override_reason",
+  "outstanding_amount",
   "base_section",
   "base_net_total",
   "base_tax_total",
@@ -100,6 +104,12 @@
    "options": "Tax Rule"
   },
   {
+   "fieldname": "payment_schedule",
+   "fieldtype": "Table",
+   "label": "Payment Schedule",
+   "options": "Payment Schedule Line"
+  },
+  {
    "fieldname": "items",
    "fieldtype": "Table",
    "label": "Items",
@@ -123,6 +133,25 @@
    "fieldtype": "Currency",
    "in_list_view": 1,
    "label": "Grand Total",
+   "read_only": 1
+  },
+  {
+   "default": "0",
+   "fieldname": "credit_limit_override_approved",
+   "fieldtype": "Check",
+   "label": "Credit Limit Override Approved"
+  },
+  {
+   "depends_on": "eval:doc.credit_limit_override_approved",
+   "fieldname": "credit_limit_override_reason",
+   "fieldtype": "Small Text",
+   "label": "Credit Limit Override Reason"
+  },
+  {
+   "fieldname": "outstanding_amount",
+   "fieldtype": "Currency",
+   "in_list_view": 1,
+   "label": "Outstanding Amount",
    "read_only": 1
   },
   {

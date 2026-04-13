@@ -12,6 +12,8 @@
   "stock_uom",
   "column_flags",
   "is_stock_item",
+  "current_stock_qty",
+  "last_stock_reconciliation_date",
   "is_sales_item",
   "is_purchase_item",
   "disabled"
@@ -56,6 +58,18 @@
    "fieldname": "is_stock_item",
    "fieldtype": "Check",
    "label": "Is Stock Item"
+  },
+  {
+   "default": "0",
+   "fieldname": "current_stock_qty",
+   "fieldtype": "Float",
+   "label": "Current Stock Qty"
+  },
+  {
+   "fieldname": "last_stock_reconciliation_date",
+   "fieldtype": "Date",
+   "label": "Last Stock Reconciliation Date",
+   "read_only": 1
   },
   {
    "default": "1",
