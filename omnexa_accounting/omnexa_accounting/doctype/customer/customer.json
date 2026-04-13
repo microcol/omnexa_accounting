@@ -11,6 +11,7 @@
   "status",
   "credit_limit",
   "payment_terms",
+  "credit_days",
   "tax_id",
   "email",
   "phone",
@@ -52,7 +53,14 @@
    "fieldname": "payment_terms",
    "fieldtype": "Data",
    "label": "Payment Terms",
-   "description": "e.g. Net 30 — informational; invoice due dates are set per document"
+   "description": "e.g. Net 30 — if Credit Days is 0, \"Net N\" here sets default invoice due date"
+  },
+  {
+   "default": "0",
+   "fieldname": "credit_days",
+   "fieldtype": "Int",
+   "label": "Credit Days",
+   "description": "When greater than zero, new sales invoices default Due Date = Posting Date + this many days (overrides Net N in Payment Terms)"
   },
   {
    "fieldname": "tax_id",

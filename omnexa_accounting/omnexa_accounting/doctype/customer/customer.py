@@ -4,13 +4,15 @@
 import frappe
 from frappe import _
 from frappe.model.document import Document
-from frappe.utils import flt
+from frappe.utils import cint, flt
 
 
 class Customer(Document):
 	def validate(self):
 		if flt(self.credit_limit) < 0:
 			frappe.throw(_("Credit limit cannot be negative."), title=_("Credit"))
+		if cint(self.credit_days) < 0:
+			frappe.throw(_("Credit Days cannot be negative."), title=_("Payment Terms"))
 		existing = frappe.db.get_value(
 			"Customer",
 			{"company": self.company, "customer_name": self.customer_name},

@@ -576,3 +576,90 @@ class TestOmnexaAccounting(FrappeTestCase):
 		pe.mode_of_payment = mop.name
 		with self.assertRaises(frappe.ValidationError):
 			pe.insert(ignore_permissions=True)
+
+	def test_customer_credit_days_negative_rejected(self):
+		cust = frappe.new_doc("Customer")
+		cust.company = self.company
+		cust.customer_name = "BadDays"
+		cust.credit_days = -1
+		with self.assertRaises(frappe.ValidationError):
+			cust.insert(ignore_permissions=True)
+
+	def test_sales_invoice_due_date_from_party_credit_days(self):
+		cust = frappe.new_doc("Customer")
+		cust.company = self.company
+		cust.customer_name = "Net14 Cust"
+		cust.credit_days = 14
+		cust.insert(ignore_permissions=True)
+		leaf = self._gl("7300", "Rev Net", 0)
+		si = frappe.new_doc("Sales Invoice")
+		si.company = self.company
+		si.customer = cust.name
+		si.posting_date = today()
+		si.append("items", {"item_code": "x", "qty": 1, "rate": 1, "income_account": leaf})
+		si.insert(ignore_permissions=True)
+		self.assertEqual(getdate(si.due_date), add_days(getdate(si.posting_date), 14))
+
+	def test_sales_invoice_due_date_from_payment_terms_net_phrase(self):
+		cust = frappe.new_doc("Customer")
+		cust.company = self.company
+		cust.customer_name = "TermsOnly"
+		cust.payment_terms = "Net 7"
+		cust.insert(ignore_permissions=True)
+		leaf = self._gl("7310", "Rev T", 0)
+		si = frappe.new_doc("Sales Invoice")
+		si.company = self.company
+		si.customer = cust.name
+		si.posting_date = today()
+		si.append("items", {"item_code": "x", "qty": 1, "rate": 1, "income_account": leaf})
+		si.insert(ignore_permissions=True)
+		self.assertEqual(getdate(si.due_date), add_days(getdate(si.posting_date), 7))
+
+	def test_credit_days_takes_priority_over_net_phrase(self):
+		cust = frappe.new_doc("Customer")
+		cust.company = self.company
+		cust.customer_name = "Pri Cust"
+		cust.credit_days = 3
+		cust.payment_terms = "Net 99"
+		cust.insert(ignore_permissions=True)
+		leaf = self._gl("7311", "Rev Pri", 0)
+		si = frappe.new_doc("Sales Invoice")
+		si.company = self.company
+		si.customer = cust.name
+		si.posting_date = today()
+		si.append("items", {"item_code": "x", "qty": 1, "rate": 1, "income_account": leaf})
+		si.insert(ignore_permissions=True)
+		self.assertEqual(getdate(si.due_date), add_days(getdate(si.posting_date), 3))
+
+	def test_purchase_invoice_due_date_from_supplier_credit_days(self):
+		supp = frappe.new_doc("Supplier")
+		supp.company = self.company
+		supp.supplier_name = "SupNet"
+		supp.credit_days = 10
+		supp.insert(ignore_permissions=True)
+		exp = self._gl("7320", "Exp Sup", 0)
+		pi = frappe.new_doc("Purchase Invoice")
+		pi.company = self.company
+		pi.supplier = supp.name
+		pi.posting_date = today()
+		pi.append("items", {"item_code": "x", "qty": 1, "rate": 1, "expense_account": exp})
+		pi.insert(ignore_permissions=True)
+		self.assertEqual(getdate(pi.due_date), add_days(getdate(pi.posting_date), 10))
+
+	def test_sales_invoice_submit_and_cancel(self):
+		frappe.set_user("Administrator")
+		cust = frappe.new_doc("Customer")
+		cust.company = self.company
+		cust.customer_name = "Cancel SI"
+		cust.insert(ignore_permissions=True)
+		leaf = self._gl("7330", "Rev Can", 0)
+		si = frappe.new_doc("Sales Invoice")
+		si.company = self.company
+		si.customer = cust.name
+		si.posting_date = today()
+		si.append("items", {"item_code": "x", "qty": 1, "rate": 1, "income_account": leaf})
+		si.insert(ignore_permissions=True)
+		si.submit()
+		self.assertEqual(si.docstatus, 1)
+		si.cancel()
+		self.assertEqual(si.docstatus, 2)

@@ -4,14 +4,16 @@
 import frappe
 from frappe import _
 from frappe.model.document import Document
-from frappe.utils import flt, getdate
+from frappe.utils import add_days, flt, getdate
 
 from omnexa_accounting.utils.currency import apply_multi_currency_to_invoice
+from omnexa_accounting.utils.party import get_effective_credit_days
 from omnexa_accounting.utils.posting import assert_posting_date_open
 
 
 class PurchaseInvoice(Document):
 	def validate(self):
+		self._apply_due_date_from_party()
 		self._validate_supplier_company()
 		self._validate_due_date()
 		self._validate_return()
@@ -19,6 +21,13 @@ class PurchaseInvoice(Document):
 		self._set_amounts()
 		apply_multi_currency_to_invoice(self)
 		self._validate_accounts_and_dimensions()
+
+	def _apply_due_date_from_party(self):
+		if self.due_date or self.is_return or not self.supplier:
+			return
+		days = get_effective_credit_days("Supplier", self.supplier)
+		if days > 0:
+			self.due_date = add_days(getdate(self.posting_date), days)
 
 	def _validate_supplier_company(self):
 		if not self.supplier:

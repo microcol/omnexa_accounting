@@ -4,10 +4,13 @@
 import frappe
 from frappe import _
 from frappe.model.document import Document
+from frappe.utils import cint
 
 
 class Supplier(Document):
 	def validate(self):
+		if cint(self.credit_days) < 0:
+			frappe.throw(_("Credit Days cannot be negative."), title=_("Payment Terms"))
 		existing = frappe.db.get_value(
 			"Supplier",
 			{"company": self.company, "supplier_name": self.supplier_name},
