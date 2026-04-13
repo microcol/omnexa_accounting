@@ -663,3 +663,54 @@ class TestOmnexaAccounting(FrappeTestCase):
 		self.assertEqual(si.docstatus, 1)
 		si.cancel()
 		self.assertEqual(si.docstatus, 2)
+
+	def test_purchase_invoice_submit_and_cancel(self):
+		frappe.set_user("Administrator")
+		supp = frappe.new_doc("Supplier")
+		supp.company = self.company
+		supp.supplier_name = "Cancel PI"
+		supp.insert(ignore_permissions=True)
+		exp = self._gl("7340", "Exp Can", 0)
+		pi = frappe.new_doc("Purchase Invoice")
+		pi.company = self.company
+		pi.supplier = supp.name
+		pi.posting_date = today()
+		pi.append("items", {"item_code": "x", "qty": 1, "rate": 1, "expense_account": exp})
+		pi.insert(ignore_permissions=True)
+		pi.submit()
+		self.assertEqual(pi.docstatus, 1)
+		pi.cancel()
+		self.assertEqual(pi.docstatus, 2)
+
+	def test_payment_entry_submit_and_cancel_no_reference(self):
+		frappe.set_user("Administrator")
+		cust = frappe.new_doc("Customer")
+		cust.company = self.company
+		cust.customer_name = "PE Cancel"
+		cust.insert(ignore_permissions=True)
+		pe = frappe.new_doc("Payment Entry")
+		pe.company = self.company
+		pe.party_type = "Customer"
+		pe.party = cust.name
+		pe.posting_date = today()
+		pe.paid_amount = 1
+		pe.insert(ignore_permissions=True)
+		pe.submit()
+		self.assertEqual(pe.docstatus, 1)
+		pe.cancel()
+		self.assertEqual(pe.docstatus, 2)
+
+	def test_journal_entry_submit_and_cancel(self):
+		frappe.set_user("Administrator")
+		leaf = self._gl("7350", "JE Can A", 0)
+		leaf2 = self._gl("7351", "JE Can B", 0)
+		je = frappe.new_doc("Journal Entry")
+		je.company = self.company
+		je.posting_date = today()
+		je.append("accounts", {"account": leaf, "debit": 5, "credit": 0})
+		je.append("accounts", {"account": leaf2, "debit": 0, "credit": 5})
+		je.insert(ignore_permissions=True)
+		je.submit()
+		self.assertEqual(je.docstatus, 1)
+		je.cancel()
+		self.assertEqual(je.docstatus, 2)
