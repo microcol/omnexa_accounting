@@ -798,3 +798,78 @@ class TestOmnexaAccounting(FrappeTestCase):
 		si.reload()
 		si.cancel()
 		self.assertEqual(si.docstatus, 2)
+
+	def test_purchase_invoice_amend_after_cancel(self):
+		frappe.set_user("Administrator")
+		supp = frappe.new_doc("Supplier")
+		supp.company = self.company
+		supp.supplier_name = "Amend PI"
+		supp.insert(ignore_permissions=True)
+		exp = self._gl("7370", "Exp Amend PI", 0)
+		pi = frappe.new_doc("Purchase Invoice")
+		pi.company = self.company
+		pi.supplier = supp.name
+		pi.posting_date = today()
+		pi.append("items", {"item_code": "x", "qty": 1, "rate": 8, "expense_account": exp})
+		pi.insert(ignore_permissions=True)
+		pi.submit()
+		pi.cancel()
+		amended = frappe.copy_doc(frappe.get_doc("Purchase Invoice", pi.name))
+		amended.amended_from = pi.name
+		amended.docstatus = 0
+		amended.insert(ignore_permissions=True)
+		amended.items[0].rate = 12
+		amended.save(ignore_permissions=True)
+		amended.submit()
+		self.assertEqual(amended.docstatus, 1)
+		self.assertEqual(amended.amended_from, pi.name)
+		self.assertEqual(amended.grand_total, 12.0)
+
+	def test_journal_entry_amend_after_cancel(self):
+		frappe.set_user("Administrator")
+		a1 = self._gl("7371", "JE Am Dr", 0)
+		a2 = self._gl("7372", "JE Am Cr", 0)
+		je = frappe.new_doc("Journal Entry")
+		je.company = self.company
+		je.posting_date = today()
+		je.append("accounts", {"account": a1, "debit": 20, "credit": 0})
+		je.append("accounts", {"account": a2, "debit": 0, "credit": 20})
+		je.insert(ignore_permissions=True)
+		je.submit()
+		je.cancel()
+		amended = frappe.copy_doc(frappe.get_doc("Journal Entry", je.name))
+		amended.amended_from = je.name
+		amended.docstatus = 0
+		amended.insert(ignore_permissions=True)
+		amended.accounts[0].debit = 25
+		amended.accounts[1].credit = 25
+		amended.save(ignore_permissions=True)
+		amended.submit()
+		self.assertEqual(amended.docstatus, 1)
+		self.assertEqual(amended.amended_from, je.name)
+
+	def test_payment_entry_amend_after_cancel(self):
+		frappe.set_user("Administrator")
+		cust = frappe.new_doc("Customer")
+		cust.company = self.company
+		cust.customer_name = "Amend PE"
+		cust.insert(ignore_permissions=True)
+		pe = frappe.new_doc("Payment Entry")
+		pe.company = self.company
+		pe.party_type = "Customer"
+		pe.party = cust.name
+		pe.posting_date = today()
+		pe.paid_amount = 3
+		pe.insert(ignore_permissions=True)
+		pe.submit()
+		pe.cancel()
+		amended = frappe.copy_doc(frappe.get_doc("Payment Entry", pe.name))
+		amended.amended_from = pe.name
+		amended.docstatus = 0
+		amended.insert(ignore_permissions=True)
+		amended.paid_amount = 9
+		amended.save(ignore_permissions=True)
+		amended.submit()
+		self.assertEqual(amended.docstatus, 1)
+		self.assertEqual(amended.amended_from, pe.name)
+		self.assertEqual(amended.paid_amount, 9.0)
