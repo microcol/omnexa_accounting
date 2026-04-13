@@ -714,3 +714,87 @@ class TestOmnexaAccounting(FrappeTestCase):
 		self.assertEqual(je.docstatus, 1)
 		je.cancel()
 		self.assertEqual(je.docstatus, 2)
+
+	def test_sales_invoice_amend_rejected_when_original_not_cancelled(self):
+		frappe.set_user("Administrator")
+		cust = frappe.new_doc("Customer")
+		cust.company = self.company
+		cust.customer_name = "Amend Block"
+		cust.insert(ignore_permissions=True)
+		leaf = self._gl("7360", "Rev Amend B", 0)
+		si = frappe.new_doc("Sales Invoice")
+		si.company = self.company
+		si.customer = cust.name
+		si.posting_date = today()
+		si.append("items", {"item_code": "x", "qty": 1, "rate": 3, "income_account": leaf})
+		si.insert(ignore_permissions=True)
+		si.submit()
+		amended = frappe.copy_doc(frappe.get_doc("Sales Invoice", si.name))
+		amended.amended_from = si.name
+		amended.docstatus = 0
+		with self.assertRaises(frappe.ValidationError):
+			amended.insert(ignore_permissions=True)
+		si.cancel()
+
+	def test_sales_invoice_amend_after_cancel(self):
+		frappe.set_user("Administrator")
+		cust = frappe.new_doc("Customer")
+		cust.company = self.company
+		cust.customer_name = "Amend OK"
+		cust.insert(ignore_permissions=True)
+		leaf = self._gl("7361", "Rev Amend A", 0)
+		si = frappe.new_doc("Sales Invoice")
+		si.company = self.company
+		si.customer = cust.name
+		si.posting_date = today()
+		si.append("items", {"item_code": "x", "qty": 1, "rate": 4, "income_account": leaf})
+		si.insert(ignore_permissions=True)
+		si.submit()
+		si.cancel()
+		amended = frappe.copy_doc(frappe.get_doc("Sales Invoice", si.name))
+		amended.amended_from = si.name
+		amended.docstatus = 0
+		amended.insert(ignore_permissions=True)
+		amended.items[0].rate = 6
+		amended.save(ignore_permissions=True)
+		amended.submit()
+		self.assertEqual(amended.docstatus, 1)
+		self.assertEqual(amended.amended_from, si.name)
+		self.assertEqual(amended.grand_total, 6.0)
+
+	def test_payment_entry_cancel_with_sales_invoice_reference(self):
+		frappe.set_user("Administrator")
+		cust = frappe.new_doc("Customer")
+		cust.company = self.company
+		cust.customer_name = "PE Ref Cancel"
+		cust.insert(ignore_permissions=True)
+		leaf = self._gl("7362", "Rev PE Ref", 0)
+		si = frappe.new_doc("Sales Invoice")
+		si.company = self.company
+		si.customer = cust.name
+		si.posting_date = today()
+		si.append("items", {"item_code": "x", "qty": 1, "rate": 11, "income_account": leaf})
+		si.insert(ignore_permissions=True)
+		si.submit()
+		pe = frappe.new_doc("Payment Entry")
+		pe.company = self.company
+		pe.party_type = "Customer"
+		pe.party = cust.name
+		pe.posting_date = today()
+		pe.paid_amount = si.grand_total
+		pe.append(
+			"references",
+			{
+				"reference_doctype": "Sales Invoice",
+				"reference_name": si.name,
+				"allocated_amount": si.grand_total,
+			},
+		)
+		pe.insert(ignore_permissions=True)
+		pe.submit()
+		self.assertEqual(pe.docstatus, 1)
+		pe.cancel()
+		self.assertEqual(pe.docstatus, 2)
+		si.reload()
+		si.cancel()
+		self.assertEqual(si.docstatus, 2)

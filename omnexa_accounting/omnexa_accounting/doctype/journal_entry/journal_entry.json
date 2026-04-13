@@ -10,7 +10,8 @@
   "is_opening",
   "reference",
   "remarks",
-  "accounts"
+  "accounts",
+  "amended_from"
  ],
  "fields": [
   {
@@ -52,13 +53,23 @@
    "label": "Accounts",
    "options": "Journal Entry Account",
    "reqd": 1
+  },
+  {
+   "fieldname": "amended_from",
+   "fieldtype": "Link",
+   "label": "Amended From",
+   "no_copy": 1,
+   "options": "Journal Entry",
+   "print_hide": 1,
+   "read_only": 1,
+   "search_index": 1
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2026-04-14 14:00:00",
+ "modified": "2026-04-14 18:00:00",
  "modified_by": "Administrator",
  "module": "Omnexa Accounting",
  "name": "Journal Entry",

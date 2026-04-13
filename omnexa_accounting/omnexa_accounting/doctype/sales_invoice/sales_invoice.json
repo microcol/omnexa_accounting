@@ -23,7 +23,8 @@
   "base_section",
   "base_net_total",
   "base_tax_total",
-  "base_grand_total"
+  "base_grand_total",
+  "amended_from"
  ],
  "fields": [
   {
@@ -147,13 +148,23 @@
    "in_list_view": 1,
    "label": "Base Grand Total",
    "read_only": 1
+  },
+  {
+   "fieldname": "amended_from",
+   "fieldtype": "Link",
+   "label": "Amended From",
+   "no_copy": 1,
+   "options": "Sales Invoice",
+   "print_hide": 1,
+   "read_only": 1,
+   "search_index": 1
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2026-04-14 14:00:00",
+ "modified": "2026-04-14 18:00:00",
  "modified_by": "Administrator",
  "module": "Omnexa Accounting",
  "name": "Sales Invoice",
