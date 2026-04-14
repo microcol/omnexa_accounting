@@ -3,6 +3,7 @@
 
 import frappe
 from frappe import _
+from omnexa_core.omnexa_core.branch_access import get_allowed_branches
 
 
 def execute(filters=None):
@@ -18,20 +19,14 @@ def execute(filters=None):
 		conditions.append("je.posting_date <= %(to_date)s")
 	if filters.get("branch"):
 		conditions.append("je.branch = %(branch)s")
+	allowed = get_allowed_branches(company=company)
+	if allowed is not None:
+		if not allowed:
+			return columns(), []
+		filters.allowed_branches = tuple(allowed)
+		conditions.append("je.branch in %(allowed_branches)s")
 
-	columns = [
-		{"label": _("Posting Date"), "fieldname": "posting_date", "fieldtype": "Date", "width": 100},
-		{"label": _("Voucher"), "fieldname": "voucher", "fieldtype": "Link", "options": "Journal Entry", "width": 130},
-		{"label": _("Reference"), "fieldname": "reference", "fieldtype": "Data", "width": 130},
-		{"label": _("Branch"), "fieldname": "branch", "fieldtype": "Link", "options": "Branch", "width": 120},
-		{"label": _("Account"), "fieldname": "account", "fieldtype": "Link", "options": "GL Account", "width": 170},
-		{"label": _("Party Type"), "fieldname": "party_type", "fieldtype": "Data", "width": 100},
-		{"label": _("Party"), "fieldname": "party", "fieldtype": "Data", "width": 130},
-		{"label": _("Debit"), "fieldname": "debit", "fieldtype": "Currency", "width": 120},
-		{"label": _("Credit"), "fieldname": "credit", "fieldtype": "Currency", "width": 120},
-		{"label": _("Remarks"), "fieldname": "remarks", "fieldtype": "Data", "width": 220},
-	]
-
+	cols = columns()
 	data = frappe.db.sql(
 		f"""
 		SELECT
@@ -53,4 +48,19 @@ def execute(filters=None):
 		filters,
 		as_dict=True,
 	)
-	return columns, data
+	return cols, data
+
+
+def columns():
+	return [
+		{"label": _("Posting Date"), "fieldname": "posting_date", "fieldtype": "Date", "width": 100},
+		{"label": _("Voucher"), "fieldname": "voucher", "fieldtype": "Link", "options": "Journal Entry", "width": 130},
+		{"label": _("Reference"), "fieldname": "reference", "fieldtype": "Data", "width": 130},
+		{"label": _("Branch"), "fieldname": "branch", "fieldtype": "Link", "options": "Branch", "width": 120},
+		{"label": _("Account"), "fieldname": "account", "fieldtype": "Link", "options": "GL Account", "width": 170},
+		{"label": _("Party Type"), "fieldname": "party_type", "fieldtype": "Data", "width": 100},
+		{"label": _("Party"), "fieldname": "party", "fieldtype": "Data", "width": 130},
+		{"label": _("Debit"), "fieldname": "debit", "fieldtype": "Currency", "width": 120},
+		{"label": _("Credit"), "fieldname": "credit", "fieldtype": "Currency", "width": 120},
+		{"label": _("Remarks"), "fieldname": "remarks", "fieldtype": "Data", "width": 220},
+	]

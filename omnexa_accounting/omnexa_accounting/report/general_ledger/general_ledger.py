@@ -4,6 +4,7 @@
 import frappe
 from frappe import _
 from frappe.utils import flt
+from omnexa_core.omnexa_core.branch_access import get_allowed_branches
 
 
 def execute(filters=None):
@@ -21,6 +22,12 @@ def execute(filters=None):
 		conditions.append("jea.account = %(account)s")
 	if filters.get("branch"):
 		conditions.append("je.branch = %(branch)s")
+	allowed = get_allowed_branches(company=company)
+	if allowed is not None:
+		if not allowed:
+			return columns, []
+		filters.allowed_branches = tuple(allowed)
+		conditions.append("je.branch in %(allowed_branches)s")
 
 	columns = [
 		{"label": _("Posting Date"), "fieldname": "posting_date", "fieldtype": "Date", "width": 100},

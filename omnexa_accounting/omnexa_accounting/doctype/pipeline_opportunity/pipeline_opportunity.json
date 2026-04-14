@@ -1,5 +1,6 @@
 {
  "actions": [],
+ "allow_import": 1,
  "autoname": "hash",
  "creation": "2026-04-15 14:45:00",
  "doctype": "DocType",

@@ -121,6 +121,13 @@ after_migrate = "omnexa_accounting.install.after_migrate"
 # permission_query_conditions = {
 # 	"Event": "frappe.desk.doctype.event.event.get_permission_query_conditions",
 # }
+permission_query_conditions = {
+	"Sales Invoice": "omnexa_accounting.permissions.sales_invoice_query_conditions",
+	"Purchase Invoice": "omnexa_accounting.permissions.purchase_invoice_query_conditions",
+	"Payment Entry": "omnexa_accounting.permissions.payment_entry_query_conditions",
+	"Journal Entry": "omnexa_accounting.permissions.journal_entry_query_conditions",
+	"Bank Reconciliation": "omnexa_accounting.permissions.bank_reconciliation_query_conditions",
+}
 #
 # has_permission = {
 # 	"Event": "frappe.desk.doctype.event.event.has_permission",
@@ -145,6 +152,41 @@ after_migrate = "omnexa_accounting.install.after_migrate"
 # 		"on_trash": "method"
 # 	}
 # }
+doc_events = {
+	"Sales Invoice": {
+		"before_validate": "omnexa_accounting.permissions.populate_company_branch_from_user_context",
+		"validate": "omnexa_accounting.permissions.enforce_branch_access_for_doc",
+	},
+	"Purchase Invoice": {
+		"before_validate": "omnexa_accounting.permissions.populate_company_branch_from_user_context",
+		"validate": "omnexa_accounting.permissions.enforce_branch_access_for_doc",
+	},
+	"Payment Entry": {
+		"before_validate": "omnexa_accounting.permissions.populate_company_branch_from_user_context",
+		"validate": "omnexa_accounting.permissions.enforce_branch_access_for_doc",
+	},
+	"Journal Entry": {
+		"before_validate": "omnexa_accounting.permissions.populate_company_branch_from_user_context",
+		"validate": "omnexa_accounting.permissions.enforce_branch_access_for_doc",
+	},
+	"Bank Reconciliation": {
+		"before_validate": "omnexa_accounting.permissions.populate_company_branch_from_user_context",
+		"validate": "omnexa_accounting.permissions.enforce_branch_access_for_doc",
+	},
+	"Pipeline Lead": {
+		"before_validate": "omnexa_accounting.permissions.populate_company_branch_from_user_context"
+	},
+	"Pipeline Opportunity": {
+		"before_validate": "omnexa_accounting.permissions.populate_company_branch_from_user_context"
+	},
+	"CRM Activity": {
+		"before_validate": "omnexa_accounting.permissions.populate_company_branch_from_user_context",
+		"validate": "omnexa_accounting.permissions.enforce_branch_access_for_doc"
+	},
+	"CRM Campaign": {
+		"before_validate": "omnexa_accounting.permissions.populate_company_branch_from_user_context"
+	},
+}
 
 # Scheduled Tasks
 # ---------------

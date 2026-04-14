@@ -1,0 +1,48 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "autoname": "hash",
+ "creation": "2026-04-14 23:50:00",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "company",
+  "branch",
+  "posting_date",
+  "purpose",
+  "from_warehouse",
+  "to_warehouse",
+  "items",
+  "total_qty",
+  "remarks"
+ ],
+ "fields": [
+  {"fieldname": "company", "fieldtype": "Link", "label": "Company", "options": "Company", "reqd": 1, "in_list_view": 1},
+  {"fieldname": "branch", "fieldtype": "Link", "label": "Branch", "options": "Branch", "in_list_view": 1},
+  {"fieldname": "posting_date", "fieldtype": "Date", "label": "Posting Date", "reqd": 1, "in_list_view": 1},
+  {"fieldname": "purpose", "fieldtype": "Select", "label": "Purpose", "options": "Material Receipt\nMaterial Issue\nMaterial Transfer", "default": "Material Receipt", "reqd": 1, "in_list_view": 1},
+  {"fieldname": "from_warehouse", "fieldtype": "Link", "label": "From Warehouse", "options": "Warehouse"},
+  {"fieldname": "to_warehouse", "fieldtype": "Link", "label": "To Warehouse", "options": "Warehouse"},
+  {"fieldname": "items", "fieldtype": "Table", "label": "Items", "options": "Stock Entry Item", "reqd": 1},
+  {"fieldname": "total_qty", "fieldtype": "Float", "label": "Total Qty", "read_only": 1},
+  {"fieldname": "remarks", "fieldtype": "Small Text", "label": "Remarks"}
+ ],
+ "index_web_pages_for_search": 1,
+ "is_submittable": 1,
+ "links": [],
+ "modified": "2026-04-14 23:50:00",
+ "modified_by": "Administrator",
+ "module": "Omnexa Accounting",
+ "name": "Stock Entry",
+ "owner": "Administrator",
+ "permissions": [
+  {"role": "System Manager", "read": 1, "write": 1, "create": 1, "delete": 1, "submit": 1, "cancel": 1, "report": 1, "export": 1},
+  {"role": "Accounts Manager", "read": 1, "write": 1, "create": 1, "submit": 1, "cancel": 1, "report": 1},
+  {"role": "Accounts User", "read": 1, "write": 1, "create": 1, "submit": 1, "report": 1}
+ ],
+ "row_format": "Dynamic",
+ "sort_field": "posting_date",
+ "sort_order": "DESC",
+ "states": [],
+ "track_changes": 1
+}
