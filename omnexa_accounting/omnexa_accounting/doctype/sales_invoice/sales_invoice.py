@@ -8,7 +8,14 @@ from frappe import _
 from frappe.model.document import Document
 from frappe.utils import add_days, cint, flt, getdate
 
-from omnexa_core.omnexa_core.constants import DOC_STATUS_QUEUED
+from omnexa_core.omnexa_core.constants import (
+	DOC_STATUS_ACCEPTED,
+	DOC_STATUS_QUEUED,
+	DOC_STATUS_REJECTED,
+	DOC_STATUS_SENT,
+	DOC_STATUS_SUBMITTED,
+)
+from omnexa_accounting.utils.branch import validate_branch_company
 from omnexa_accounting.utils.currency import apply_multi_currency_to_invoice
 from omnexa_accounting.utils.party import get_effective_credit_days
 from omnexa_accounting.utils.posting import assert_posting_date_open
@@ -18,6 +25,7 @@ class SalesInvoice(Document):
 	def validate(self):
 		self._apply_due_date_from_party()
 		self._validate_customer_company()
+		validate_branch_company(self)
 		self._validate_due_date()
 		self._validate_return()
 		self._sync_and_validate_line_items()
@@ -193,7 +201,11 @@ class SalesInvoice(Document):
 		if self.is_return:
 			return
 		limit = flt(frappe.db.get_value("Customer", self.customer, "credit_limit"))
-		if limit > 0 and flt(self.grand_total) > limit:
+		if limit <= 0:
+			return
+		current_outstanding = self._get_customer_submitted_outstanding_before_current()
+		projected_outstanding = flt(current_outstanding) + flt(self.outstanding_amount or self.grand_total)
+		if projected_outstanding > limit:
 			if cint(getattr(self, "credit_limit_override_approved", 0)):
 				if not (getattr(self, "credit_limit_override_reason", "") or "").strip():
 					frappe.throw(
@@ -207,7 +219,7 @@ class SalesInvoice(Document):
 					)
 				return
 			frappe.throw(
-				_("Invoice grand total exceeds the customer's credit limit."),
+				_("Projected outstanding exceeds the customer's credit limit."),
 				title=_("Credit"),
 			)
 
@@ -215,20 +227,116 @@ class SalesInvoice(Document):
 		roles = set(frappe.get_roles(frappe.session.user))
 		return bool({"Accounts Manager", "System Manager"} & roles)
 
+	def _get_customer_submitted_outstanding_before_current(self):
+		conditions = [
+			"company = %(company)s",
+			"customer = %(customer)s",
+			"docstatus = 1",
+			"is_return = 0",
+		]
+		params = {"company": self.company, "customer": self.customer}
+		if self.name:
+			conditions.append("name != %(current_name)s")
+			params["current_name"] = self.name
+		result = frappe.db.sql(
+			f"""
+			SELECT COALESCE(SUM(outstanding_amount), 0)
+			FROM `tabSales Invoice`
+			WHERE {' AND '.join(conditions)}
+			""",
+			params,
+		)
+		return flt(result[0][0] if result else 0)
+
 	def _enqueue_eta_submission(self):
 		if self.is_return:
 			return
-		if not frappe.db.get_value("Company", self.company, "eta_einvoice_enabled"):
+		scope = self._resolve_einvoice_scope()
+		if not scope.get("enabled"):
 			return
+		existing = frappe.db.get_value(
+			"E-Document Submission",
+			{
+				"reference_doctype": self.doctype,
+				"reference_name": self.name,
+				"authority_operation": "submit",
+			},
+			"name",
+		)
+		if existing:
+			existing_doc = frappe.get_doc("E-Document Submission", existing)
+			# Idempotency: do not enqueue duplicates while processing/accepted.
+			if existing_doc.authority_status in {
+				DOC_STATUS_QUEUED,
+				DOC_STATUS_SENT,
+				DOC_STATUS_SUBMITTED,
+				DOC_STATUS_ACCEPTED,
+			}:
+				return
+			# Retry-safe path: rejected submissions are re-queued in place.
+			if existing_doc.authority_status == DOC_STATUS_REJECTED:
+				existing_doc.authority_status = DOC_STATUS_QUEUED
+				existing_doc.eta_error_code = ""
+				existing_doc.http_status_code = None
+				existing_doc.response_body = ""
+				existing_doc.save(ignore_permissions=True)
+				return
 		cust_label = frappe.db.get_value("Customer", self.customer, "customer_name") or self.customer
 		payload = f"{self.doctype}|{self.name}|{self.posting_date}|{self.grand_total}|{cust_label}".encode()
 		h = hashlib.sha256(payload).hexdigest()
 		doc = frappe.new_doc("E-Document Submission")
 		doc.company = self.company
+		doc.branch = self.branch
 		doc.reference_doctype = self.doctype
 		doc.reference_name = self.name
+		doc.tax_authority_profile = scope["tax_authority_profile"]
+		doc.signing_profile = scope["signing_profile"]
 		doc.payload_hash = h
 		doc.authority_operation = "submit"
 		doc.authority_status = DOC_STATUS_QUEUED
 		doc.insert(ignore_permissions=True)
 		doc.submit()
+
+	def _resolve_einvoice_scope(self):
+		"""Resolve ETA setup by branch first, then company fallback."""
+		if self.branch:
+			branch = frappe.db.get_value(
+				"Branch",
+				self.branch,
+				["eta_einvoice_enabled", "tax_authority_profile", "signing_profile"],
+				as_dict=True,
+			)
+			if branch and branch.get("eta_einvoice_enabled"):
+				if not branch.get("tax_authority_profile") or not branch.get("signing_profile"):
+					frappe.throw(
+						_("Branch ETA settings are incomplete: set Tax Authority Profile and Signing Profile."),
+						title=_("ETA"),
+					)
+				return {
+					"enabled": True,
+					"tax_authority_profile": branch.get("tax_authority_profile"),
+					"signing_profile": branch.get("signing_profile"),
+				}
+
+		company = frappe.db.get_value(
+			"Company",
+			self.company,
+			[
+				"eta_einvoice_enabled",
+				"company_tax_authority_profile",
+				"company_signing_profile",
+			],
+			as_dict=True,
+		)
+		if not company or not company.get("eta_einvoice_enabled"):
+			return {"enabled": False}
+		if not company.get("company_tax_authority_profile") or not company.get("company_signing_profile"):
+			frappe.throw(
+				_("Company ETA settings are incomplete: set Tax Authority Profile and Signing Profile."),
+				title=_("ETA"),
+			)
+		return {
+			"enabled": True,
+			"tax_authority_profile": company.get("company_tax_authority_profile"),
+			"signing_profile": company.get("company_signing_profile"),
+		}

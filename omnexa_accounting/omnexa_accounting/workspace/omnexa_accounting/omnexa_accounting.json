@@ -32,6 +32,16 @@
   {
    "hidden": 0,
    "is_query_report": 0,
+   "label": "Chart of Accounts",
+   "link_count": 0,
+   "link_to": "GL Account",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
    "label": "Fiscal Year",
    "link_count": 0,
    "link_to": "Fiscal Year",
@@ -75,6 +85,16 @@
    "label": "Bank Account",
    "link_count": 0,
    "link_to": "Bank Account",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Import Chart Template",
+   "link_count": 0,
+   "link_to": "Data Import",
    "link_type": "DocType",
    "onboard": 0,
    "type": "Link"
@@ -210,6 +230,66 @@
    "link_count": 0,
    "link_to": "Payment Entry",
    "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Bank Reconciliation",
+   "link_count": 0,
+   "link_to": "Bank Reconciliation",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "General Journal",
+   "link_count": 0,
+   "link_to": "General Journal",
+   "link_type": "Report",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "General Ledger",
+   "link_count": 0,
+   "link_to": "General Ledger",
+   "link_type": "Report",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Customer Ledger",
+   "link_count": 0,
+   "link_to": "Customer Ledger",
+   "link_type": "Report",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Supplier Ledger",
+   "link_count": 0,
+   "link_to": "Supplier Ledger",
+   "link_type": "Report",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Employee Ledger",
+   "link_count": 0,
+   "link_to": "Employee Ledger",
+   "link_type": "Report",
    "onboard": 0,
    "type": "Link"
   },

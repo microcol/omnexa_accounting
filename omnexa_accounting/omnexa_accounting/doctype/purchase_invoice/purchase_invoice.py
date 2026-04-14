@@ -6,6 +6,7 @@ from frappe import _
 from frappe.model.document import Document
 from frappe.utils import add_days, flt, getdate
 
+from omnexa_accounting.utils.branch import validate_branch_company
 from omnexa_accounting.utils.currency import apply_multi_currency_to_invoice
 from omnexa_accounting.utils.party import get_effective_credit_days
 from omnexa_accounting.utils.posting import assert_posting_date_open
@@ -15,6 +16,7 @@ class PurchaseInvoice(Document):
 	def validate(self):
 		self._apply_due_date_from_party()
 		self._validate_supplier_company()
+		validate_branch_company(self)
 		self._validate_due_date()
 		self._validate_return()
 		self._sync_and_validate_line_items()

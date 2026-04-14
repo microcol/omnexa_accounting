@@ -38,6 +38,46 @@ class TestOmnexaAccounting(FrappeTestCase):
 		doc.insert(ignore_permissions=True)
 		return doc.name
 
+	def _create_branch(self, company: str, code: str, name: str):
+		if frappe.db.exists("Branch", {"company": company, "branch_code": code}):
+			return frappe.db.get_value("Branch", {"company": company, "branch_code": code}, "name")
+		doc = frappe.get_doc(
+			{
+				"doctype": "Branch",
+				"company": company,
+				"branch_name": name,
+				"branch_code": code,
+				"status": "Active",
+			}
+		)
+		doc.insert(ignore_permissions=True)
+		return doc.name
+
+	def _create_tax_authority_profile(self, company: str, suffix: str):
+		doc = frappe.get_doc(
+			{
+				"doctype": "Tax Authority Profile",
+				"company": company,
+				"country_code": "EG",
+				"adapter_id": "EGY_ETA",
+				"api_base_url": f"https://eta.example/{suffix}",
+			}
+		)
+		doc.insert(ignore_permissions=True)
+		return doc.name
+
+	def _create_signing_profile(self, company: str, suffix: str):
+		doc = frappe.get_doc(
+			{
+				"doctype": "Signing Profile",
+				"company": company,
+				"profile_name": f"Sign {suffix}",
+				"certificate_vault_ref": f"vault://eta/{suffix}",
+			}
+		)
+		doc.insert(ignore_permissions=True)
+		return doc.name
+
 	def _deactivate_purchase_approval_rules(self):
 		for name in frappe.get_all(
 			"Purchase Approval Rule",
@@ -103,6 +143,77 @@ class TestOmnexaAccounting(FrappeTestCase):
 		je.insert(ignore_permissions=True)
 		with self.assertRaises(frappe.ValidationError):
 			je.submit()
+
+	def test_non_privileged_user_cannot_freeze_fiscal_period(self):
+		restricted_company = self._create_company("OMNX-RST")
+		user_email = "period-user@example.com"
+		if not frappe.db.exists("User", user_email):
+			u = frappe.new_doc("User")
+			u.email = user_email
+			u.first_name = "Period"
+			u.enabled = 1
+			u.new_password = "test123"
+			u.insert(ignore_permissions=True)
+
+		frappe.set_user(user_email)
+		try:
+			fy = frappe.new_doc("Fiscal Year")
+			fy.title = "FY Restricted"
+			fy.company = restricted_company
+			fy.year_start_date = getdate(today())
+			fy.year_end_date = add_days(getdate(today()), 365)
+			fy.append(
+				"periods",
+				{
+					"period_name": "P1",
+					"period_start_date": fy.year_start_date,
+					"period_end_date": fy.year_end_date,
+					"frozen": 1,
+				},
+			)
+			with self.assertRaises(frappe.ValidationError):
+				fy.insert(ignore_permissions=True)
+		finally:
+			frappe.set_user("Administrator")
+
+	def test_accounts_manager_can_freeze_fiscal_period(self):
+		allowed_company = self._create_company("OMNX-ALW")
+		role_name = "Accounts Manager"
+		user_email = "period-manager@example.com"
+		if not frappe.db.exists("User", user_email):
+			u = frappe.new_doc("User")
+			u.email = user_email
+			u.first_name = "Period Manager"
+			u.enabled = 1
+			u.new_password = "test123"
+			u.append("roles", {"role": role_name})
+			u.insert(ignore_permissions=True)
+		else:
+			u = frappe.get_doc("User", user_email)
+			if not any((d.role == role_name) for d in u.roles):
+				u.append("roles", {"role": role_name})
+				u.save(ignore_permissions=True)
+
+		frappe.set_user(user_email)
+		try:
+			fy = frappe.new_doc("Fiscal Year")
+			fy.title = "FY Allowed"
+			fy.company = allowed_company
+			fy.year_start_date = getdate(today())
+			fy.year_end_date = add_days(getdate(today()), 365)
+			fy.append(
+				"periods",
+				{
+					"period_name": "P1",
+					"period_start_date": fy.year_start_date,
+					"period_end_date": fy.year_end_date,
+					"frozen": 1,
+				},
+			)
+			fy.insert(ignore_permissions=True)
+			self.assertTrue(frappe.db.exists("Fiscal Year", fy.name))
+		finally:
+			frappe.set_user("Administrator")
 
 	def test_tax_rule_overlap(self):
 		head = self._gl("4000", "VAT", 0)
@@ -956,6 +1067,71 @@ class TestOmnexaAccounting(FrappeTestCase):
 		with self.assertRaises(frappe.ValidationError):
 			si.insert(ignore_permissions=True)
 
+	def test_sales_invoice_branch_must_match_company(self):
+		other = self._create_company("OMNX-BRSI")
+		other_branch = self._create_branch(other, "H1", "Other Branch")
+		cust = frappe.new_doc("Customer")
+		cust.company = self.company
+		cust.customer_name = "Branch SI Cust"
+		cust.insert(ignore_permissions=True)
+		leaf = self._gl("5101", "Revenue BSI", 0)
+		si = frappe.new_doc("Sales Invoice")
+		si.company = self.company
+		si.branch = other_branch
+		si.customer = cust.name
+		si.posting_date = today()
+		si.append("items", {"item_code": "line", "qty": 1, "rate": 1, "income_account": leaf})
+		with self.assertRaises(frappe.ValidationError):
+			si.insert(ignore_permissions=True)
+
+	def test_purchase_invoice_branch_must_match_company(self):
+		other = self._create_company("OMNX-BRPI")
+		other_branch = self._create_branch(other, "H2", "Other Branch PI")
+		supp = frappe.new_doc("Supplier")
+		supp.company = self.company
+		supp.supplier_name = "Branch PI Supp"
+		supp.insert(ignore_permissions=True)
+		exp = self._gl("5102", "Expense BPI", 0)
+		pi = frappe.new_doc("Purchase Invoice")
+		pi.company = self.company
+		pi.branch = other_branch
+		pi.supplier = supp.name
+		pi.posting_date = today()
+		pi.append("items", {"item_code": "line", "qty": 1, "rate": 1, "expense_account": exp})
+		with self.assertRaises(frappe.ValidationError):
+			pi.insert(ignore_permissions=True)
+
+	def test_payment_entry_branch_must_match_company(self):
+		other = self._create_company("OMNX-BRPE")
+		other_branch = self._create_branch(other, "H3", "Other Branch PE")
+		cust = frappe.new_doc("Customer")
+		cust.company = self.company
+		cust.customer_name = "Branch PE Cust"
+		cust.insert(ignore_permissions=True)
+		pe = frappe.new_doc("Payment Entry")
+		pe.company = self.company
+		pe.branch = other_branch
+		pe.party_type = "Customer"
+		pe.party = cust.name
+		pe.posting_date = today()
+		pe.paid_amount = 10
+		with self.assertRaises(frappe.ValidationError):
+			pe.insert(ignore_permissions=True)
+
+	def test_journal_entry_branch_must_match_company(self):
+		other = self._create_company("OMNX-BRJE")
+		other_branch = self._create_branch(other, "H4", "Other Branch JE")
+		a1 = self._gl("5103", "JE Branch Dr", 0)
+		a2 = self._gl("5104", "JE Branch Cr", 0)
+		je = frappe.new_doc("Journal Entry")
+		je.company = self.company
+		je.branch = other_branch
+		je.posting_date = today()
+		je.append("accounts", {"account": a1, "debit": 10, "credit": 0})
+		je.append("accounts", {"account": a2, "debit": 0, "credit": 10})
+		with self.assertRaises(frappe.ValidationError):
+			je.insert(ignore_permissions=True)
+
 	def _ensure_usd(self):
 		if not frappe.db.exists("Currency", "USD"):
 			frappe.get_doc(
@@ -1064,6 +1240,161 @@ class TestOmnexaAccounting(FrappeTestCase):
 		si.submit()
 		self.assertEqual(si.docstatus, 1)
 
+	def test_credit_limit_blocks_when_projected_outstanding_exceeds_limit(self):
+		cust = frappe.new_doc("Customer")
+		cust.company = self.company
+		cust.customer_name = "Outstanding Limited"
+		cust.credit_limit = 150
+		cust.insert(ignore_permissions=True)
+		leaf = self._gl("5303", "Revenue OSTD", 0)
+
+		first = frappe.new_doc("Sales Invoice")
+		first.company = self.company
+		first.customer = cust.name
+		first.posting_date = today()
+		first.append("items", {"item_code": "line", "qty": 1, "rate": 100, "income_account": leaf})
+		first.insert(ignore_permissions=True)
+		first.submit()
+
+		second = frappe.new_doc("Sales Invoice")
+		second.company = self.company
+		second.customer = cust.name
+		second.posting_date = today()
+		second.append("items", {"item_code": "line", "qty": 1, "rate": 80, "income_account": leaf})
+		second.insert(ignore_permissions=True)
+		with self.assertRaises(frappe.ValidationError):
+			second.submit()
+
+	def test_eta_enqueue_is_idempotent_for_same_invoice(self):
+		eta_company = self._create_company("OMNX-ETAI")
+		frappe.db.set_value("Company", eta_company, "eta_einvoice_enabled", 1, update_modified=False)
+		frappe.db.set_value(
+			"Company",
+			eta_company,
+			"company_tax_authority_profile",
+			self._create_tax_authority_profile(eta_company, "idem"),
+			update_modified=False,
+		)
+		frappe.db.set_value(
+			"Company",
+			eta_company,
+			"company_signing_profile",
+			self._create_signing_profile(eta_company, "idem"),
+			update_modified=False,
+		)
+		cust = frappe.new_doc("Customer")
+		cust.company = eta_company
+		cust.customer_name = "ETA Idempotent"
+		cust.insert(ignore_permissions=True)
+		leaf = self._gl("5304", "Revenue ETA IDEMP", 0, company=eta_company)
+		si = frappe.new_doc("Sales Invoice")
+		si.company = eta_company
+		si.customer = cust.name
+		si.posting_date = today()
+		si.append("items", {"item_code": "line", "qty": 1, "rate": 100, "income_account": leaf})
+		si.insert(ignore_permissions=True)
+		si._enqueue_eta_submission()
+		si._enqueue_eta_submission()
+		count = frappe.db.count(
+			"E-Document Submission",
+			{
+				"reference_doctype": "Sales Invoice",
+				"reference_name": si.name,
+				"authority_operation": "submit",
+			},
+		)
+		self.assertEqual(count, 1)
+
+	def test_eta_enqueue_requeues_rejected_submission(self):
+		eta_company = self._create_company("OMNX-ETAR")
+		frappe.db.set_value("Company", eta_company, "eta_einvoice_enabled", 1, update_modified=False)
+		frappe.db.set_value(
+			"Company",
+			eta_company,
+			"company_tax_authority_profile",
+			self._create_tax_authority_profile(eta_company, "retry"),
+			update_modified=False,
+		)
+		frappe.db.set_value(
+			"Company",
+			eta_company,
+			"company_signing_profile",
+			self._create_signing_profile(eta_company, "retry"),
+			update_modified=False,
+		)
+		cust = frappe.new_doc("Customer")
+		cust.company = eta_company
+		cust.customer_name = "ETA Retry"
+		cust.insert(ignore_permissions=True)
+		leaf = self._gl("5305", "Revenue ETA RETRY", 0, company=eta_company)
+		si = frappe.new_doc("Sales Invoice")
+		si.company = eta_company
+		si.customer = cust.name
+		si.posting_date = today()
+		si.append("items", {"item_code": "line", "qty": 1, "rate": 100, "income_account": leaf})
+		si.insert(ignore_permissions=True)
+		si._enqueue_eta_submission()
+		submission_name = frappe.db.get_value(
+			"E-Document Submission",
+			{
+				"reference_doctype": "Sales Invoice",
+				"reference_name": si.name,
+				"authority_operation": "submit",
+			},
+			"name",
+		)
+		submission = frappe.get_doc("E-Document Submission", submission_name)
+		submission.authority_status = "Rejected"
+		submission.eta_error_code = "401"
+		submission.http_status_code = 401
+		submission.response_body = "Auth failed"
+		submission.save(ignore_permissions=True)
+		si._enqueue_eta_submission()
+		submission.reload()
+		self.assertEqual(submission.authority_status, "Queued")
+		self.assertFalse(submission.eta_error_code)
+
+	def test_eta_uses_branch_specific_profiles_when_enabled(self):
+		eta_company = self._create_company("OMNX-ETAB")
+		company_tax = self._create_tax_authority_profile(eta_company, "co")
+		company_sign = self._create_signing_profile(eta_company, "co")
+		frappe.db.set_value("Company", eta_company, "eta_einvoice_enabled", 1, update_modified=False)
+		frappe.db.set_value("Company", eta_company, "company_tax_authority_profile", company_tax, update_modified=False)
+		frappe.db.set_value("Company", eta_company, "company_signing_profile", company_sign, update_modified=False)
+
+		branch = self._create_branch(eta_company, "ETA1", "ETA Branch")
+		branch_tax = self._create_tax_authority_profile(eta_company, "br")
+		branch_sign = self._create_signing_profile(eta_company, "br")
+		frappe.db.set_value("Branch", branch, "eta_einvoice_enabled", 1, update_modified=False)
+		frappe.db.set_value("Branch", branch, "tax_authority_profile", branch_tax, update_modified=False)
+		frappe.db.set_value("Branch", branch, "signing_profile", branch_sign, update_modified=False)
+
+		cust = frappe.get_doc({"doctype": "Customer", "company": eta_company, "customer_name": "Branch ETA"}).insert(ignore_permissions=True)
+		leaf = self._gl("5306", "Revenue ETA BR", 0, company=eta_company)
+		si = frappe.get_doc(
+			{
+				"doctype": "Sales Invoice",
+				"company": eta_company,
+				"branch": branch,
+				"customer": cust.name,
+				"posting_date": today(),
+				"items": [{"item_code": "line", "qty": 1, "rate": 100, "income_account": leaf}],
+			}
+		).insert(ignore_permissions=True)
+		si._enqueue_eta_submission()
+		sub_name = frappe.db.get_value(
+			"E-Document Submission",
+			{
+				"reference_doctype": "Sales Invoice",
+				"reference_name": si.name,
+				"authority_operation": "submit",
+			},
+			"name",
+		)
+		sub = frappe.get_doc("E-Document Submission", sub_name)
+		self.assertEqual(sub.tax_authority_profile, branch_tax)
+		self.assertEqual(sub.signing_profile, branch_sign)
+
 	def test_cost_center_company_mismatch_on_invoice_line(self):
 		other = self._create_company("OMNX-CC")
 		cc = frappe.new_doc("Cost Center")
@@ -1100,6 +1431,50 @@ class TestOmnexaAccounting(FrappeTestCase):
 		ba.gl_account = grp
 		with self.assertRaises(frappe.ValidationError):
 			ba.insert(ignore_permissions=True)
+
+	def test_bank_reconciliation_computes_statement_and_difference(self):
+		bank_gl = self._gl("6001", "Bank Leaf", 0)
+		ba = frappe.new_doc("Bank Account")
+		ba.company = self.company
+		ba.account_title = "Operating Account"
+		ba.gl_account = bank_gl
+		ba.currency = "EGP"
+		ba.insert(ignore_permissions=True)
+
+		rec = frappe.new_doc("Bank Reconciliation")
+		rec.company = self.company
+		rec.bank_account = ba.name
+		rec.statement_date = today()
+		rec.opening_balance = 1000
+		rec.statement_debits = 500
+		rec.statement_credits = 300
+		rec.closing_balance_book = 1200
+		rec.status = "Reconciled"
+		rec.insert(ignore_permissions=True)
+		self.assertEqual(float(rec.closing_balance_statement), 1200.0)
+		self.assertEqual(float(rec.difference_amount), 0.0)
+
+	def test_bank_reconciliation_rejects_cross_company_bank_account(self):
+		other_company = self._create_company("OMNX-BRC")
+		bank_gl = self._gl("6002", "Other Bank Leaf", 0, company=other_company)
+		ba = frappe.new_doc("Bank Account")
+		ba.company = other_company
+		ba.account_title = "Other Operating"
+		ba.gl_account = bank_gl
+		ba.currency = "EGP"
+		ba.insert(ignore_permissions=True)
+
+		rec = frappe.new_doc("Bank Reconciliation")
+		rec.company = self.company
+		rec.bank_account = ba.name
+		rec.statement_date = today()
+		rec.opening_balance = 1000
+		rec.statement_debits = 100
+		rec.statement_credits = 50
+		rec.closing_balance_book = 1050
+		rec.status = "Reconciled"
+		with self.assertRaises(frappe.ValidationError):
+			rec.insert(ignore_permissions=True)
 
 	def test_payment_entry_reference_customer_mismatch(self):
 		c1 = frappe.new_doc("Customer")

@@ -6,12 +6,14 @@ from frappe import _
 from frappe.model.document import Document
 from frappe.utils import flt
 
+from omnexa_accounting.utils.branch import validate_branch_company
 from omnexa_accounting.utils.posting import assert_posting_date_open
 
 
 class JournalEntry(Document):
 	def validate(self):
 		if self.docstatus == 0:
+			validate_branch_company(self)
 			self._validate_accounts()
 
 	def on_submit(self):

@@ -6,11 +6,13 @@ from frappe import _
 from frappe.model.document import Document
 from frappe.utils import flt, getdate
 
+from omnexa_accounting.utils.branch import validate_branch_company
 from omnexa_accounting.utils.posting import assert_posting_date_open
 
 
 class PaymentEntry(Document):
 	def validate(self):
+		validate_branch_company(self)
 		self._validate_party()
 		self._validate_bank_account()
 		self._validate_mode_of_payment()

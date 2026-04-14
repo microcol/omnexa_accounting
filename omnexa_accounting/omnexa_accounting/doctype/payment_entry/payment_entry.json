@@ -6,6 +6,7 @@
  "engine": "InnoDB",
  "field_order": [
   "company",
+  "branch",
   "bank_account",
   "mode_of_payment",
   "party_type",
@@ -27,6 +28,12 @@
    "label": "Company",
    "options": "Company",
    "reqd": 1
+  },
+  {
+   "fieldname": "branch",
+   "fieldtype": "Link",
+   "label": "Branch",
+   "options": "Branch"
   },
   {
    "fieldname": "bank_account",
@@ -114,7 +121,7 @@
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2026-04-14 18:00:00",
+ "modified": "2026-04-14 22:00:00",
  "modified_by": "Administrator",
  "module": "Omnexa Accounting",
  "name": "Payment Entry",

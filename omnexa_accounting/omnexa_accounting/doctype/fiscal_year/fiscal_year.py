@@ -16,6 +16,7 @@ class FiscalYear(Document):
 
 		self._validate_no_overlap()
 		self._validate_periods_within_year()
+		self._validate_period_freeze_permissions()
 
 	def _validate_no_overlap(self):
 		filters = {"company": self.company}
@@ -45,3 +46,34 @@ class FiscalYear(Document):
 				)
 			if ps > pe:
 				frappe.throw(_("Period start must be on or before end."), title=_("Period"))
+
+	def _validate_period_freeze_permissions(self):
+		"""Only finance-privileged users can freeze periods."""
+		current_user = frappe.session.user
+		if current_user in ("Administrator", "Guest"):
+			return
+
+		roles = set(frappe.get_roles(current_user))
+		if "System Manager" in roles or "Accounts Manager" in roles:
+			return
+
+		previous_frozen_by_row = {}
+		if not self.is_new():
+			for row in frappe.get_all(
+				"Fiscal Year Period",
+				filters={"parent": self.name, "parenttype": "Fiscal Year"},
+				fields=["name", "frozen"],
+			):
+				previous_frozen_by_row[row.name] = int(row.frozen or 0)
+
+		for row in self.periods or []:
+			current_frozen = int(row.frozen or 0)
+			if not current_frozen:
+				continue
+			# New frozen period or toggled from unfrozen -> frozen requires privileged role.
+			previous_frozen = int(previous_frozen_by_row.get(row.name, 0))
+			if not previous_frozen:
+				frappe.throw(
+					_("Only Accounts Manager or System Manager can freeze fiscal periods."),
+					title=_("Permission"),
+				)
