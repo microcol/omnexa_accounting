@@ -8,6 +8,11 @@
  "field_order": [
   "item_code",
   "item_name",
+  "item_grouping_break",
+  "product_type",
+  "manufacturing_role",
+  "can_be_manufactured",
+  "requires_dynamic_composition",
   "company",
   "stock_uom",
   "column_flags",
@@ -32,6 +37,38 @@
    "in_list_view": 1,
    "label": "Item Name",
    "reqd": 1
+  },
+  {
+   "fieldname": "item_grouping_break",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "Traditional Product",
+   "fieldname": "product_type",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "label": "Product Type",
+   "options": "Traditional Product\nService\nRaw Material\nConsumable\nKit",
+   "reqd": 1
+  },
+  {
+   "default": "Finished Good",
+   "fieldname": "manufacturing_role",
+   "fieldtype": "Select",
+   "label": "Manufacturing Role",
+   "options": "Finished Good\nRaw Material\nConsumable\nSub Assembly\nService"
+  },
+  {
+   "default": "0",
+   "fieldname": "can_be_manufactured",
+   "fieldtype": "Check",
+   "label": "Can Be Manufactured"
+  },
+  {
+   "default": "0",
+   "fieldname": "requires_dynamic_composition",
+   "fieldtype": "Check",
+   "label": "Requires Dynamic Composition"
   },
   {
    "fieldname": "company",
